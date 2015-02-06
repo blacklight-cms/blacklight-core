@@ -1,0 +1,20 @@
+{
+  "name": "blacklight-cms",
+  "version": "1.0.0",
+  "description": "AEM-compatible CMS/framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Aaron Harder <aaron@entropy.cc> (http://entropy.cc)",
+  "license": "ISC",
+  "dependencies": {
+    "dustjs-linkedin": "^2.5.1",
+    "es6-promise": "^2.0.1",
+    "lodash": "^3.1.0",
+    "q": "^1.1.2"
+  },
+  "devDependencies": {
+    "express": "^4.11.2"
+  }
+}
