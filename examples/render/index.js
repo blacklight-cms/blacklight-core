@@ -1,53 +1,23 @@
 
-var bcms = require("../..");
-var content= require("../jcr-content.json")
-var components = require("../../lib/components");
+
+
+//// TODO: What is your plan for re-usable, shareable components?  
+//// TODO: Question, does the site-creation environment prioritize the developer experience?  or the non-developer experience?  Answer: make it good for the developer first, then for the non-developer.
+
+
+var registry = require("../../lib/component-types").createRegistry({componentPaths: __dirname + "/components"});
+
+var cmp = registry.get("mycompany/pages/home-page");
+
+
 var models = require("../../lib/models");
-var Q = require("q");
+var raw=require("./jcr-content.json");
 
-
-console.log("before the damn Q");
-var page = delay(1000)
-	.then(function(val){
-		console.log("all done:", val);
+models.generatePageModel(raw, registry)
+	.then(function(model){
+		console.log(registry.render(model.page));
 	})
-
-console.log("after the damn Q:");
-
-
-function delay(ms) {
-	console.log("Started delay()");
-    var deferred = Q.defer();
-    setTimeout(function(){deferred.resolve("blah")}, ms);    
-    return deferred.promise;
-}
-
-
-// components.config({root:__dirname});
-
-// var model = models.process(content);
-
-// cmp = components.get("mycompany/pages/home-page");
-
-// console.log(cmp);
-
-
-
-/// recurse down the jcr tree, 
-//  you DON'T need to put promises into the tree.  Rather, put them into an array.  
-//  Each promise's "then" will be responsible for placing resolved values into the correct place in the tree.
-
-models.process(content)
-	.then(
-		function(page){
-
-		}
-	)
-
-
-
-
-
-//bcms.render(content);  ///should this return a promise?
-
+	.catch(function(error){
+		console.log("Unhandled error in promise chain, foo.js: ", error);
+	});
 

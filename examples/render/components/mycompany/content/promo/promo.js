@@ -1,5 +1,5 @@
 
 
 exports.process=function(model, utils){
-	model.title = "(from model) " + model.title;
+	model.title = "(altered in model processor) " + model.title;
 }
