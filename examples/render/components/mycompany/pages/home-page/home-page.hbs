@@ -1,0 +1,26 @@
+
+<html>
+
+<head>
+		<title>{{topNav.title}}</title>
+</head>
+
+<body>
+		<div class="entry">
+		  <h1>{{topNav.title}}</h1>
+		  <div class="body">
+		    UUID: {{{_jcr_uuid}}}
+		  </div>
+
+		  {{#if salutation}}
+		    <h1>{{salutation}}</h1>
+		  {{/if}}
+
+		  {{{component promo}}}
+		</div>
+		<div style="background-color:#dfd">
+			{{{component topNav}}}
+		</div>
+</body>
+
+</html>

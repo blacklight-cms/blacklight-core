@@ -30,9 +30,10 @@
   "jcr:versionHistory": "fce16862-b300-4825-852c-0bbc3aaf16eb",
   "metaKeywords": "luxury things 4 u",
   "addmetacontents": "4c4675a3c8e2b16d6c1770ecd722765e",
-  "iparGlobalTopNav": {
+  "topNav": {
+  	"title": "Get wild with your things",
     "jcr:lastModifiedBy": "user@mycompany.com",
-    "sling:resourceType": "foundation/components/iparsys",
+    "sling:resourceType": "mycompany/content/header",
     "jcr:lastModified": "Mon Apr 29 2013 08:36:51 GMT-0400",
     "jcr:primaryType": "nt:unstructured",
     "iparsys_fake_par": {
@@ -99,28 +100,28 @@
   },
   "crisisNotification": {
     "jcr:lastModifiedBy": "user@mycompany.com",
-    "sling:resourceType": "mycompany/components/crisis-notifications",
+    "sling:resourceType": "mycompany/content/crisis-notifications",
     "label": "Alert",
     "jcr:lastModified": "Mon Apr 29 2013 08:36:51 GMT-0400",
     "jcr:primaryType": "nt:unstructured"
   },
   "sitecatalyst": {
     "jcr:lastModifiedBy": "admin",
-    "sling:resourceType": "mycompany/components/sitecatalyst",
+    "sling:resourceType": "mycompany/content/sitecatalyst",
     "jcr:lastModified": "Mon Apr 29 2013 08:36:51 GMT-0400",
     "jcr:primaryType": "nt:unstructured"
   },
   "homepageFooter": {
     "showExtraLinks": true,
     "jcr:lastModifiedBy": "webengine",
-    "sling:resourceType": "mycompany/components/home-page-footer",
+    "sling:resourceType": "mycompany/content/home-page-footer",
     "jcr:lastModified": "Mon Feb 17 2014 01:13:17 GMT-0500",
     "jcr:primaryType": "nt:unstructured"
   },
-  "homepagePromoTier3": {
+  "promo": {
     "title": "EXPERIENCE My COMPANY",
     "center_image": "/content/dam/mycompany/images/web/MYH/MYH_1912_295x165.jpg",
-    "sling:resourceType": "mycompany/components/home-page-promo-tier-3",
+    "sling:resourceType": "mycompany/content/promo",
     "left_image": "/content/dam/mycompany/images/web/MYC/MYC_015_295x165.jpg",
     "center_link": "/content/mycompany/en/aroundtheworld.html",
     "jcr:primaryType": "nt:unstructured",
@@ -128,17 +129,22 @@
     "center_description": "Fly by things to dazzling destinations, with renowned My Company service.",
     "jcr:lastModifiedBy": "user@mycompany.com",
     "left_link": "http://www.mycompany.com/extraordinary",
-    "right_image": "/content/dam/mycompany/images/web/MYC/MYC_279_295x165.jpg",
+    "right_image": "/content/dam/fourseasons/images/web/ATL/ATL_304_1280x486.jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg",
     "center_title": "Private Thingy<br>Experiences",
     "left_title": "Extraordinary<br>Thingies",
     "jcr:lastModified": "Fri Sep 05 2014 16:42:18 GMT-0400",
     "left_description": "Luxury up to the world’s most luxury people and places.",
     "right_link": "http://magazine.mycompany.com/immersive-things",
-    "right_description": "Discover the world's first fully customizable bed pan, along with expert bedtime sleepy time tips."
+    "right_description": "Discover the world's first fully customizable bed pan, along with expert bedtime sleepy time tips.",
+    "subsquare": {
+    	"sling:resourceType": "mycompany/content/subsquare",
+    	"subtitle": "180 and the letter G",
+    	"copy": "David, I'd like to have a cigarette right now, but I can't find the package.<br>Maybe your mother smoked your cigarettes?<br>My mother doesn't smoke David. Please tell me what you did with my cigarettes."
+    }
   },
   "homepageCarouselSearch": {
     "jcr:lastModifiedBy": "user@mycompany.com",
-    "sling:resourceType": "mycompany/components/home-page-carousel-with-search",
+    "sling:resourceType": "mycompany/content/home-page-carousel-with-search",
     "jcr:lastModified": "Wed Dec 31 2014 13:15:13 GMT-0500",
     "jcr:primaryType": "nt:unstructured",
     "excludedProperties": {
