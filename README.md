@@ -4,6 +4,7 @@ The Blacklight CMS
 The Blacklight CMS is a Node.js Express plugin which generates websites.   It does so by requesting components  from a Sling data source and rendering those components into HTML.  Blacklight currently provides no facility for editing data in a Sling repository, however that may change in future.
 
 Blacklight developers primarily customize how sites look and behave  by using the following mechanisms:
+
 - Creation of data model processing directives which change/augment incoming Sling data
 - Creation of template scripts to render that data into HTML
 - Configuration of Express routes to redirect incoming requests
@@ -11,6 +12,37 @@ Blacklight developers primarily customize how sites look and behave  by using th
 
 The basic building block of a Blacklight website is a *component*. Every page is a component, and most pages are themselves made up of multiple sub-components, which in some cases can be nested several levels down. Behind each component is a data model and a template.  A component's data model and template can both be customized by Blacklight developers. The scripts to customize each component's behavior are stored on disk as part of a registry of *component types*.  Each data component coming from Sling is tagged with a *resource type* property, a name which Blacklight uses to find the scripts which describe how to turn the raw Sling data into a data model and how to render it.
 
+
+Roadmap
+-------
+Planned future development for the _render_ portion of Blacklight includes the following:
+
+- Support for selectors, both in model processors and in template scripts (for example, a Blacklight-level configuration to associate selectors with data properties, eg. auto-set `_meta.isMobile: true` if .mobile selector is present)
+- More template helpers, including an iterator that skips meta-data fields, a raw data display helper, a relative-path script inclusion mechanism
+- Templates to have always-available "virtual" model members, such as `model._page`, `model._meta.isMobile`
+- More model processor uilities: link rewriting, image optimization/sizing
+- Improved error handling for templates, model processors, and unexpected configurations
+- Error, Info and Debug logging
+- Built-in watcher for changed component files, with auto-reload of affected preview pages (via WebSocket)
+- Component inheritence mechanism
+- Re-implementation of foundation component types
+- Mechanism for efficiently including JS and CSS that is associated with a given component
+- Model caching capability via memcache?
+- HTML caching:  Nginx?  Node.js + filesystem + memcache?
+- Cache invalidation mechanism
+- Dependency tracking of data and image usage (i.e. any data taken from outside of component's page), to help with cache invalidation and (future) correct selection of data nodes to push out when publishing
+- Protocol for sharing template and model code with other Sling-based CMS's, such as AEM
+
+
+
+Beyond _render_, other areas of functionality for future development may include:
+
+- _App-server_ functionality for transactional pages.  HTML rendered on server or on client.
+- _Edit_ functionality, for associating input data types and edit forms with component models
+- _Multilingual_ translation workflow support 
+- _Workflow_ (general-purpose) support
+- _Publish_ functionality, to send approved data to one or more publicly-accessible sites
+- _Publish-target_ functionality, to allow Blacklight to receive published data from a master instance
 
 
 
