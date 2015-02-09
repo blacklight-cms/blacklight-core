@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 The Blacklight CMS
 ==================
 
@@ -52,3 +53,9 @@ Beyond _render_, other areas of functionality for future development may include
 
 
 
+=======
+blacklight-cms
+===============
+
+CMS framework for use with Sling and Node/Express
+>>>>>>> 2ab7c4933a82b149a378a474b601cfb365754de6
