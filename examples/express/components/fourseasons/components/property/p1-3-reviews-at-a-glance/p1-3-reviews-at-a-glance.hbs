@@ -1,15 +1,37 @@
 
-<h3>Reviews at a glance</h3>
+<h2>Reviews at a glance</h2>
+
+{{#each .}}
+	[{{.}}]<br>
+{{/each}}
+<br>
+[{{_meta._sling_resourceType}}]<br>
 
 External data: {{propertyHomeLastModifiedBy}}<br>
 
+
+<h3>Trip Advisor</h3>
 <ul>
 {{#each AdviserColumn}}
-	{{#if TabText}}
-		<li>{{TabText}}</li>
-	{{/if}}
+		<li><a href="{{feedUrlPath}}" target="_blank">{{TabText}}</a></li>
 {{/each}}
 </ul>
+
+<h3>Facebook</h3>
+<ul>
+{{#each FacebookColumn}}
+		<li><a href="{{feedUrlPath}}" target="_blank">{{TabText}}</a></li>
+{{/each}}
+</ul>
+
+
+<h3>Twitter</h3>
+<ul>
+{{#each TwitterColumn}}
+		<li><a href="{{feedUrlPath}}" target="_blank">{{TabText}}</a></li>
+{{/each}}
+</ul>
+
 
 
 {{{component . "raw"}}}
