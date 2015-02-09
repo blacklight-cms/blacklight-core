@@ -18,6 +18,7 @@ Roadmap
 Planned future development for the _render_ portion of Blacklight includes the following:
 
 - Support for selectors, both in model processors and in template scripts (for example, a Blacklight-level configuration to associate selectors with data properties, eg. auto-set `_meta.isMobile: true` if .mobile selector is present)
+- Thorough test coverage of the Blacklight CMS codebase, as well as a testing model for any component code which is written for specific sites
 - More template helpers, including an iterator that skips meta-data fields, a raw data display helper, a relative-path script inclusion mechanism
 - Templates to have always-available "virtual" model members, such as `model._page`, `model._meta.isMobile`
 - More model processor uilities: link rewriting, image optimization/sizing
