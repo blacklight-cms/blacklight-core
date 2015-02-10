@@ -1,2 +1,3 @@
 
-module.exports = require('./lib/blacklight-express');
+module.exports.express = require('./lib/blacklight-express');
+
