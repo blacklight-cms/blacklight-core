@@ -11,10 +11,10 @@
   "dependencies": {
     "es6-promise": "^2.0.1",
     "handlebars": "^2.0.0",
-    "lodash": "^3.1.0",
-    "sling-connector": "git+https://npm:npm2000@github.entropy.cc/git/aaron.harder/sling-connector"
+    "lodash": "^3.1.0"
   },
   "devDependencies": {
-    "express": "^4.11.2"
+    "express": "^4.11.2",
+    "sling-connector": "git+https://npm:npm2000@github.entropy.cc/git/aaron.harder/sling-connector"
   }
 }
