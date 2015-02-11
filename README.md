@@ -12,6 +12,8 @@ Blacklight developers primarily customize how sites look and behave  by using th
 
 The basic building block of a Blacklight website is a *component*. Every page is a component, and most pages are themselves made up of multiple sub-components, which in some cases can be nested several levels down. Behind each component is a data model and a template.  A component's data model and template can both be customized by Blacklight developers. The scripts to customize each component's behavior are stored on disk as part of a registry of *component types*.  Each data component coming from Sling is tagged with a *resource type* property, a name which Blacklight uses to find the scripts which describe how to turn the raw Sling data into a data model and how to render it.
 
+See the `examples` folder for more details on how the system works.
+
 
 Roadmap
 -------
@@ -44,11 +46,3 @@ Beyond _render_, other areas of functionality for future development may include
 - _Workflow_ (general-purpose) support
 - _Publish_ functionality, to send approved data to one or more publicly-accessible sites
 - _Publish-target_ functionality, to allow Blacklight to receive published data from a master instance
-
-
-
-
-
-
-
-
