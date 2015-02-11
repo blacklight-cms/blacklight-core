@@ -1,3 +1,4 @@
 node_modules/**
-bcms.sublime-project
-bcms.sublime-workspace
+blacklight.sublime-project
+blacklight.sublime-workspace
+docs/html
