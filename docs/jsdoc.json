@@ -1,0 +1,10 @@
+{
+	"source": {
+		"include":["../lib/","../node_modules/sling-connector/sling-connector.js"]
+	},
+	"opts":{
+		"destination": "html",
+		"readme": "../README.md"
+	}
+
+}
