@@ -1,0 +1,39 @@
+{
+  "sling:resourceType": "error_page",
+
+    "model_file_with_syntax_error": {
+     "_sling_resourceType": "model/file/with/syntax/error"
+      },
+
+
+    "model_file_with_runtime_error": {
+     "_sling_resourceType": "model/file/with/runtime/error",
+     "other_data": "junk"
+      },
+
+    "model_async_but_no_resolve": {
+     "_meta":{"_sling_resourceType": "model/async/but/no/resolve"}
+      },
+
+    "null_item": null,
+
+    "template_file_but_no_directives": {
+      "_meta":{"_sling_resourceType": "template/file/but/no/directives"}
+      },
+
+
+    "template_file_no_sling_resource_in_component": {
+      "_meta":{"_sling_resourceType": "template/no/sling/resource/in/component"}
+      },
+
+    "template_with_syntax_error": {
+     "_meta":{"_sling_resourceType": "template/with/syntax/error"}
+      },
+
+
+    "path_exists_but_no_files": {
+     "_meta":{"_sling_resourceType": "path/exists/but/no/files"}
+  }
+
+   
+}
