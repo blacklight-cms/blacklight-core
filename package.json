@@ -11,7 +11,8 @@
   "dependencies": {
     "es6-promise": "^2.0.1",
     "handlebars": "^2.0.0",
-    "lodash": "^3.1.0"
+    "lodash": "^3.1.0",
+    "serve-favicon": "^2.2.0"
   },
   "devDependencies": {
     "express": "^4.11.2",
