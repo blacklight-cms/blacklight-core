@@ -11,8 +11,11 @@
   "dependencies": {
     "es6-promise": "^2.0.1",
     "handlebars": "^2.0.0",
+    "jsontoxml": "0.0.11",
     "lodash": "^3.1.0",
+    "mime-types": "^2.0.9",
     "serve-favicon": "^2.2.0",
+    "watch": "^0.14.0",
     "winston": "^0.9.0"
   },
   "devDependencies": {
