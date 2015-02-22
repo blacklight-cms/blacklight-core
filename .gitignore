@@ -2,3 +2,13 @@ node_modules/**
 blacklight.sublime-project
 blacklight.sublime-workspace
 docs/html
+
+
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
+
+*.iml
+
+## Directory-based project format:
+.idea/
+
+.DS_Store
