@@ -21,6 +21,6 @@
   },
   "devDependencies": {
     "express": "^4.11.2",
-    "sling-connector": "git+https://npm:npm2000@code.entropy.cc/git/aaron.harder/sling-connector"
+    "sling-connector": "git://code.entropy.cc/sling-connector"
   }
 }
