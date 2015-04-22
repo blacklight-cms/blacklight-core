@@ -14,7 +14,7 @@ module.exports.connectionsByRunMode = function(configDictionary){
 			sc.runMode = idx;
 			sc.blacklightPort = val.port;
 			scs.modes[idx]=sc;
-			scs.ports[val.port]=sc;
+			if(!scs.ports[val.port]) scs.ports[val.port]=sc;
 		});
 
 		return scs;
@@ -24,8 +24,14 @@ module.exports.connectionsByRunMode = function(configDictionary){
 
 
 module.exports.launchHttp = function(app, slingConnectors){
+	var servers=[];
+	var ports=[];
 	_.each(slingConnectors.ports, function(val,port){
-		console.log("Launching [" + val.runMode + "] listener on port [" + port + "]");
-		http.createServer(app).listen(port);
+		if(!_.contains(ports, port)){
+			console.log("Launching [" + val.runMode + "] listener on port [" + port + "]");
+			servers.push(http.createServer(app).listen(port));
+			ports.push(port);
+		}
 	});
+	return servers;
 }
