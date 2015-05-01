@@ -6,7 +6,7 @@ var _ = module.exports._ = require("lodash");
 
 module.exports.connectionsByRunMode = function(configDictionary){
 
-	return (function(){
+	return (function(){		
 		var scs={modes: {}, ports:{}, portCount: 0};
 
 		_.each(configDictionary,function(val, idx){
@@ -19,6 +19,25 @@ module.exports.connectionsByRunMode = function(configDictionary){
 				scs.portCount++;
 			}
 		});
+
+		scs.defaultPort = _.keys(scs.ports)[0];
+
+		/////////////////////////////
+		scs.getByReq = function(req){
+			var requestPort = req.socket.localPort || scs.defaultPort;
+			var slingConnector = scs.ports[requestPort];
+			if(!slingConnector) throw(new Error("No sling connector matching request port: " + requestPort));
+				
+			var requestedMode = req.headers["x-sling-source"];
+			if(requestedMode && (requestedMode!=slingConnector.runMode)){
+				slingConnector=scs.modes[requestedMode];
+				if(!slingConnector) throw(new Error("No sling connector matching requested mode: " + requestedMode));
+			}else{
+				requestedMode = slingConnector.runMode;
+			}	
+
+			return {slingConnector: slingConnector, requestedMode: requestedMode};
+		}
 
 		return scs;
 	})();
