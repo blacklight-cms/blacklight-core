@@ -1,4 +1,5 @@
 var http=require("http");	
+var SlingConnector = require("sling-connector");
 
 module.exports.express = require('./lib/blacklight-express');
 module.exports.componentTypes = require('./lib/component-types');

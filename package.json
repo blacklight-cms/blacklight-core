@@ -18,10 +18,10 @@
     "mime-types": "^2.0.9",
     "serve-favicon": "^2.2.0",
     "watch": "^0.14.0",
-    "winston": "^0.9.0"
+    "winston": "^0.9.0",
+    "sling-connector": "git://code.entropy.cc/sling-connector"
   },
   "devDependencies": {
-    "express": "^4.11.2",
-    "sling-connector": "git://code.entropy.cc/sling-connector"
+    "express": "^4.11.2"
   }
 }
