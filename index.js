@@ -5,6 +5,8 @@ module.exports.express = require('./lib/blacklight-express');
 module.exports.componentTypes = require('./lib/component-types');
 var _ = module.exports._ = require("lodash");
 
+//TODO: add img-opt and email-mailer here.
+
 module.exports.connectionsByRunMode = function(configDictionary){
 
 	return (function(){		
