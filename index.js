@@ -7,13 +7,14 @@ var _ = module.exports._ = require("lodash");
 
 //TODO: add img-opt and email-mailer here.
 
-module.exports.connectionsByRunMode = function(configDictionary){
+module.exports.connectionsByRunMode = function(configDictionary, options){
 
 	return (function(){		
 		var scs={modes: {}, ports:{}, portCount: 0};
 
 		_.each(configDictionary,function(val, idx){
-			var sc=new SlingConnector(val);
+			var opt=_.defaults(val, options);			
+			var sc=new SlingConnector(opt);
 			sc.runMode = idx;
 			sc.blacklightPort = val.port;
 			scs.modes[idx]=sc;
