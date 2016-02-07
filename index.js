@@ -1,4 +1,5 @@
-var http=require("http");	
+var http=require("http");
+var _path=require("path");	
 var SlingConnector = require("sling-connector");
 
 module.exports.express = require('./lib/blacklight-express');
@@ -60,4 +61,20 @@ module.exports.launchHttp = function(app, slingConnectors){
 		}
 	});
 	return servers;
-}
+};
+
+
+
+module.exports.buildComponentRoots=function(){
+	allRoots=[];
+	_.each(arguments, function(arg,idx){		
+		if(!_.isArray(arg)){arg=[arg];}
+		arg=_.map(arg, function(root){ 
+			if(root[0]==="."){return _path.resolve(global.bl.appRoot, root); }else{return root;}
+		});
+		allRoots=allRoots.concat(arg);
+	});
+	return allRoots;
+
+};
+
