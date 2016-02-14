@@ -42,11 +42,11 @@ module.exports.connectionsByRunMode = function(configDictionary, options){
 			}	
 
 			return {slingConnector: slingConnector, requestedMode: requestedMode};
-		}
+		};
 
 		return scs;
 	})();
-}
+};
 
 
 
@@ -74,7 +74,28 @@ module.exports.buildComponentRoots=function(){
 		});
 		allRoots=allRoots.concat(arg);
 	});
+	allRoots.push(_path.resolve(__dirname, "components"));
 	return allRoots;
 
 };
+
+module.exports.parsePath = module.exports.express.parsePath;
+
+module.exports.prettyName=function(value, options){
+	options=options||{};
+	if(value && value.replace){
+		value=value.replace(/\-|\_/g, " "); 
+		if(options.allCaps){
+			value=value.replace(/ [a-z]|^[a-z]/g, function(v){return v.toUpperCase();});
+		}else{
+			value=value.charAt(0).toUpperCase() + value.slice(1);
+		}
+		
+		value=value.replace(/([a-z][A-Z])|[a-zA-Z][0-9]|[0-9][a-zA-Z]/g, function(v){return v.charAt(0) + " " + v.charAt(1);})
+		return value;
+	}else{
+		return "";
+	}
+};
+
 
