@@ -10,7 +10,7 @@
   "license": "Entropy Shared Source",
   "dependencies": {
     "es6-promise": "^2.0.1",
-    "handlebars": "^2.0.0",
+    "handlebars": "^4.0.1",
     "html-escape": "^1.0.1",
     "html-minifier": "^0.7.2",
     "js-beautify": "^1.5.5",
