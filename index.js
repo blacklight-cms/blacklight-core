@@ -1,6 +1,7 @@
 var http=require("http");
 var _path=require("path");	
 var SlingConnector = require("sling-connector");
+var log=global.bl.logger.get("blacklight-cms.main")
 
 module.exports.express = require('./lib/blacklight-express');
 module.exports.componentTypes = require('./lib/component-types');
@@ -55,7 +56,7 @@ module.exports.launchHttp = function(app, slingConnectors){
 	var ports=[];
 	_.each(slingConnectors.ports, function(val,port){
 		if(!_.contains(ports, port)){
-			console.log("Launching [" + val.runMode + "] listener on port [" + port + "]");
+			log.info("Launching [" + val.runMode + "] listener on port [" + port + "]");
 			servers.push(http.createServer(app).listen(port));
 			ports.push(port);
 		}
