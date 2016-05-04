@@ -5,6 +5,7 @@ var log=global.bl.logger.get("blacklight-cms.main")
 
 module.exports.express = require('./lib/blacklight-express');
 module.exports.componentTypes = require('./lib/component-types');
+module.exports.moduleLoader = require('./lib/module-loader');
 var _ = module.exports._ = require("lodash");
 
 //TODO: add img-opt and email-mailer here.
