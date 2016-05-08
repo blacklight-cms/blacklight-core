@@ -1,18 +1,19 @@
 var http=require("http");
 var _path=require("path");	
 var SlingConnector = require("sling-connector");
-var log=global.bl.logger.get("blacklight-cms.main")
+var log=global.bl.logger.get("blacklight-cms.main");
 
 module.exports.express = require('./lib/blacklight-express');
 module.exports.componentTypes = require('./lib/component-types');
 module.exports.moduleLoader = require('./lib/module-loader');
+module.exports.imgOpt = require('./lib/img-opt');
 var _ = module.exports._ = require("lodash");
 
 //TODO: add img-opt and email-mailer here.
 
 module.exports.connectionsByRunMode = function(configDictionary, options){
 
-	return (function(){		
+	return (function(){
 		var scs={modes: {}, ports:{}, portCount: 0};
 
 		_.each(configDictionary,function(val, idx){
