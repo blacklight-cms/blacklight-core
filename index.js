@@ -55,7 +55,7 @@ module.exports.launchHttp = function(app, slingConnectors){
 	var servers=[];
 	var ports=[];
 	_.each(slingConnectors.ports, function(val,port){
-		if(!_.contains(ports, port)){
+		if(!_.includes(ports, port)){
 			log.info("Launching [" + val.runMode + "] listener on port [" + port + "]");
 			servers.push(http.createServer(app).listen(port));
 			ports.push(port);
