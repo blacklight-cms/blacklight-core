@@ -17,6 +17,7 @@
     "jsontoxml": "0.0.11",
     "lodash": "^3.1.0",
     "mime-types": "^2.0.9",
+    "mkdirp": "^0.5.1",
     "serve-favicon": "^2.2.0",
     "sling-connector": "git://code.entropy.cc/sling-connector",
     "watch": "^0.14.0",
