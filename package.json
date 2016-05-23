@@ -19,7 +19,7 @@
     "mime-types": "^2.0.9",
     "mkdirp": "^0.5.1",
     "serve-favicon": "^2.2.0",
-    "sling-connector": "git://code.entropy.cc/sling-connector#release/1.x",
+    "sling-connector": "git+https://gitlab.entropy.cc/blacklight/npm-sling-connector.git#release/1.x",
     "watch": "^0.14.0",
     "winston": "^0.9.0"
   },
