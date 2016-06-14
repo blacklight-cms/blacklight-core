@@ -3,11 +3,14 @@ var _path=require("path");
 var SlingConnector = require("sling-connector");
 var log=global.bl.logger.get("blacklight-cms.main");
 
+module.exports.markedBuilder=require("./lib/marked-builder");
 module.exports.express = require('./lib/blacklight-express');
 module.exports.componentTypes = require('./lib/component-types');
 module.exports.moduleLoader = require('./lib/module-loader');
 module.exports.imgOpt = require('./lib/img-opt');
 var _ = module.exports._ = require("lodash");
+
+global.bl.marked = module.exports.markedBuilder();
 
 //TODO: add img-opt and email-mailer here.
 
