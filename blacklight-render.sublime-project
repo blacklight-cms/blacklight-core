@@ -3,7 +3,7 @@
     [
         {
             "path": ".",
-            "folder_exclude_patterns": ["blacklight_modules", "node_modules", ".sass-cache", "dist"],
+            "folder_exclude_patterns": ["docs","blacklight_modules", "node_modules", ".sass-cache", "dist"],
             "file_exclude_patterns": ["*.sublime-project", "config.json.dist", ".gitignore", "*.min.js","*.min.css"]
         }
     ],
