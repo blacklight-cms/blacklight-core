@@ -1,7 +1,7 @@
 var http=require("http");
 var _path=require("path");	
 var SlingConnector = require("sling-connector");
-var log=global.bl.logger.get("blacklight-cms.main");
+var log=global.bl.logger.get("blacklight-render.index");
 
 module.exports.markedBuilder=require("./lib/marked-builder");
 module.exports.express = require('./lib/blacklight-express');
