@@ -34,19 +34,30 @@ module.exports.connectionsByRunMode = function(configDictionary, options){
 		scs.defaultPort = _.keys(scs.ports)[0];
 
 		/////////////////////////////
-		scs.getByReq = function(req){
-			var requestPort = req.socket.localPort || scs.defaultPort;
-			var slingConnector = scs.ports[requestPort];
-			if(!slingConnector) throw(new Error("No sling connector matching request port: " + requestPort));
-				
-			var requestedMode = req.headers["x-sling-source"];
-			if(requestedMode && (requestedMode!=slingConnector.runMode)){
-				slingConnector=scs.modes[requestedMode];
-				if(!slingConnector) throw(new Error("No sling connector matching requested mode: " + requestedMode));
-			}else{
-				requestedMode = slingConnector.runMode;
-			}	
+		scs.getByReq = function(req, overrides){
+			var requestedMode,slingConnector;
 
+			if(req.sling){
+				slingConnector=req.sling.slingConnector;
+				requestedMode=req.sling.requestedMode;
+			}else{
+				var requestPort = req.socket.localPort || scs.defaultPort;
+				slingConnector = scs.ports[requestPort];
+				if(!slingConnector){ throw(new Error("No sling connector matching request port: " + requestPort));}
+					
+				requestedMode = req.headers["x-sling-source"];
+				if(requestedMode && (requestedMode!==slingConnector.runMode)){
+					slingConnector=scs.modes[requestedMode];
+					if(!slingConnector){ throw(new Error("No sling connector matching requested mode: " + requestedMode));}
+				}else{
+					requestedMode = slingConnector.runMode;
+				}				
+			}
+
+			if(overrides){
+				slingConnector = new SlingConnector(_.assign(slingConnector, overrides));
+			}
+	
 			return {slingConnector: slingConnector, requestedMode: requestedMode};
 		};
 
@@ -62,6 +73,7 @@ module.exports.launchHttp = function(app, slingConnectors){
 	_.each(slingConnectors.ports, function(val,port){
 		if(!_.includes(ports, port)){
 			log.info("Launching [" + val.runMode + "] listener on port [" + port + "]");
+			console.log("Launching [" + val.runMode + "] listener on port [" + port + "]");
 			servers.push(http.createServer(app).listen(port));
 			ports.push(port);
 		}
@@ -72,7 +84,7 @@ module.exports.launchHttp = function(app, slingConnectors){
 
 
 module.exports.buildComponentRoots=function(){
-	allRoots=[];
+	var allRoots=[];
 	_.each(arguments, function(arg,idx){		
 		if(!_.isArray(arg)){arg=[arg];}
 		arg=_.map(arg, function(root){ 
