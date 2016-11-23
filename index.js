@@ -6,17 +6,25 @@ var express=require("express");
 var compression = require('compression');
 var bodyParser = require('body-parser');
 var http=require("http");
+var SlingConnector=require("sling-connector");
+var c=require("./lib/colors");
 
 // Sequencing is a big issue.  When do you get logger config, etc.  Need minimal dependencies.
 // Possibly break into functional steps and note in the bl object when each step is done.
 
 
 
-console.log("blacklight.index:  you should set up an exception-catching domain here?")
+console.log("blacklight-render: index.js:  you should set up an exception-catching domain here?")
 
 module.exports=function(options){
+	
+	var hostLookup={}, portLookup={}, siteLookup={};
+	var trustForwardedHostHeader;
 
 	var blacklight = global.bl = {};
+
+	options=options||{};
+	options.appRoot = options.appRoot || process.env.BLACKLIGHT_ROOT;
 	if(!options.appRoot){throw new Error("options.appRoot must be set to the home directory of your blacklight installation.");}
 	options.appRoot = normalizePath(options.appRoot);
 
@@ -44,6 +52,7 @@ module.exports=function(options){
 	/**********************************************************************************/
 	/**********************************************************************************/
 	blacklight.configure = function(){
+		if(initStatus.configure){return;}
 		initializeTo("configure");
 		var log = global.bl.logger.get("blacklight.config");
 
@@ -128,9 +137,10 @@ module.exports=function(options){
 
 			if(siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + siteConfig.slingBasePath.trim("/") + "/")}
 
-			var slings = _.get(config, site + ".slingConnectors");
-			_.each(slings,(sling,key)=>{
-				if(!sling.baseUri){throw new Error("Missing baseUri in sling configuration: " + site + ".slingConnectors." + key);}
+			var slings = _.get(config, site + ".hosts");
+			_.each(slings,(host,key)=>{
+				var sling=host.sling;
+				if(!sling.baseUri){throw new Error("Missing baseUri in sling configuration: " + site + ".hosts." + key + ".sling");}
 				sling.baseUri = sling.baseUri.replace(/\/$/,"");
 			})
 
@@ -151,12 +161,11 @@ module.exports=function(options){
 		initializeTo("loadModules");
 
 		/// Instantiate sling connectors for all sites
-		_.each(blacklight.sites, (siteConfig, site)=>{
-			var slingConfigs = _.get(blacklight.config[site], "slingConnectors"), defaultConfig;
+		_.each(blacklight.sites, (siteObject, site)=>{
+			var slingConfigs = _.get(blacklight.config[site], "hosts"), defaultConfig;
 			if(slingConfigs){
-				var defaultConfigBuilder = _.get(siteConfig, "helpers.slingConfig");
+				var defaultConfigBuilder = _.get(siteObject, "helpers.slingConfig");
 				if(defaultConfigBuilder){defaultConfig=defaultConfigBuilder()}
-				siteConfig.slingConnectors = blacklight.connectionsByRunMode(slingConfigs, defaultConfig);
 			}
 		});
 
@@ -188,9 +197,9 @@ module.exports=function(options){
 			var siteConfig = _.get(config, site);
 			var siteEnvironment = _.get(config, site + ".environment");
 			var siteHelpers = _.get(siteObject, "helpers", {});
-			var slingConnectors = _.get(siteObject, "slingConnectors");
+			var hosts = _.get(siteConfig, "hosts");
 
-			if(!slingConnectors){return;}
+			if(!hosts){return;}
 
 			var app = express();
 			app.disable('x-powered-by');
@@ -211,7 +220,7 @@ module.exports=function(options){
 
 			}else{
 
-				app.use(siteConfig.publicMount + "img-opt/", blacklight.imgOpt(slingConnectors, siteEnvironment.imageOptimizer));
+				app.use(siteConfig.publicMount + "img-opt/", blacklight.imgOpt(siteEnvironment.imageOptimizer));
 
 				// GZIP compression, applies to all subsequent middleware responses with appropriate content-types
 				app.use(compression({threshold: 0}));  
@@ -221,8 +230,7 @@ module.exports=function(options){
 				app.all(
 					bodyParser.json(),        			
 					bodyParser.urlencoded({extended: true}),
-					function(req,res,next){req.blConfig=siteConfig; req.blSite=site; next();},
-					getSlingByRequest(slingConnectors),
+					// TODO: add authenticator here?  
 					blacklight.modules.rootedRouter);
 
 
@@ -248,7 +256,8 @@ module.exports=function(options){
 				staticHandler = siteHelpers.assetHandler(staticHandler);
 			}
 
-			console.log("Public mount",siteConfig.publicMount,"for", site);
+			// console.log("Public mount for '" + site + "'", siteConfig.publicMount);
+
 			app.use(siteConfig.publicMount, 
 				staticHandler,  
 				function(req,res,next){
@@ -274,12 +283,11 @@ module.exports=function(options){
 		    blacklight.express({
 				publicRoot: _path.resolve(options.appRoot, "public") ,
 				componentPaths: componentPaths,  
-				slingConnectors: slingConnectors,
 				componentCacheClearOnChange: config.environment.componentCacheClearOnChange,
 				componentCacheDisable: config.environment.componentCacheDisable,
 				utilities: blacklight.modules.modelHelpers,
 				language: siteConfig.language,
-				translationMethod: siteHelpers.staticTranslation ? siteHelpers.staticTranslation(slingConnectors, siteConfig.language) : ()=>{"Translation not installed";},
+				translationMethod: siteHelpers.staticTranslation ? siteHelpers.staticTranslation(siteConfig.language) : ()=>{"Translation not installed";},
 				postProcessOptions:{minifyHTML:!config.environment.devMode, beautifyHTML:true},
 
 				// TODO: config for emailError or not: the mechanism below needs replacement
@@ -293,14 +301,6 @@ module.exports=function(options){
 		});
 
 
-		///////////////////////////////////////////////////////////////////////////
-		function getSlingByRequest(slingConnectors){
-			return function(req, res, next){
-				// TODO: add in optional authentication step.
-				req.sling=slingConnectors.getByReq(req);
-				next();
-			}
-		}
 	
 	}
 
@@ -312,8 +312,6 @@ module.exports=function(options){
 	/**********************************************************************************/
 	blacklight.buildServer = function(){
 		initializeTo("buildServer");
-		var hostsTable={};
-		var portsTable={};
 
 		// TODO: You need to decide precedence between hostname, port, and x-sling-source header.
 		//        what if there is a mismatch between two or more of those?  who wins?  defaultSite?
@@ -338,13 +336,115 @@ module.exports=function(options){
 		// build port table
 		// return lookup function which goes through tables, and x-sling-source, and picks the siteApp
 
+		// HOST dictionary key:  can either be  "*.something.specific"  or  "something.exactly.specific"
+		/// "www.fourseasons.com", *.fourseasons.com"  "*.fs.local"  ["*.stage.fourseasons.com","www.fourseasons.com"]
+
 
 
 		_.each(blacklight.sites, (siteObject, site)=>{
+
 			var siteApp=siteObject.app;
 			if(!siteApp){return;}
+			var siteConfig = config[site];
+			var defaultHostname = siteConfig.hostname;
+			var baseSettings = {site: site, app: siteApp, siteConfig: siteConfig};
+			var isDefaultSite  =  (site === blacklight.defaultSite);
+			var DEFAULT_PORT = 4400;
 
-			// {site:, , app:, sling:, slingSource:,}
+
+			if(defaultHostname && !_.isArray(defaultHostname)){defaultHostname = [defaultHostname];}
+
+
+			function addVhost(hostname, port, settings){
+				var vhost=hostname + ":" + port;
+				var scId = settings.site + "." + settings.mode;
+
+
+				if(hostLookup[vhost]){
+					console.log(c.red("\n\nERROR: "), c.yellow("Duplicate vhost entry for site:"), c.white(scId), 
+						c.yellow("\n\tPlease make sure you have a unique hostname and/or port specified in the BL configuration for:"), 
+						c.white("\n\t" + settings.site + ".hosts." + settings.mode + "\n\n") );
+					throw new Error("Configuration problem: duplicate vhost entry '" + vhost + "' for [" + scId + "]")
+				}
+				hostLookup[vhost] = settings;
+			}
+
+			_.each(siteConfig.hosts, (host, mode)=>{
+				var currentVhost = _.assign({mode:mode, sling: new SlingConnector(host.sling)}, baseSettings);
+				siteLookup[site + "." + mode] = currentVhost;
+				var port = host.port || siteConfig.port || DEFAULT_PORT;
+
+				var scSpecificHostname=host.hostname;
+				if(scSpecificHostname){
+					if(!_.isArray(scSpecificHostname)){scSpecificHostname = [scSpecificHostname];}					
+					scSpecificHostname.forEach((hostname)=>{
+						addVhost(hostname, port, currentVhost);
+					});
+				}else{
+					if(defaultHostname){
+						for(var i=0; i<defaultHostname.length; i++){
+							if(mode==="publish"){
+								addVhost(defaultHostname[i], port, currentVhost);
+							}else{								
+								var parts=defaultHostname[i].match(/(^www\.|^\*\.)(.*)/);     // This is a non-publish SC without a hostname entry, so auto-generate a name
+								if(parts){
+									addVhost(mode + "." + parts[2], port, currentVhost);
+								}else{
+									addVhost(mode + "." + defaultHostname[i], port, currentVhost);
+								}
+							}							
+						}						
+					}else{
+						// no specific or default hostname, and if there is no port specified up the port number by 1.
+						if(mode==="publish" && !host.port){port=port+1;}
+						addVhost("*", port, currentVhost);						
+					}
+				}
+
+				var existingDefault = portLookup[port];
+				if(existingDefault){
+					if((isDefaultSite || existingDefault.site === site) && (mode==="publish")){
+						portLookup[port] = currentVhost;
+					}
+				}else{
+					portLookup[port] = currentVhost;
+				}
+
+			});
+
+
+			_.each(portLookup, (portApp, port)=>{
+				var vhost="*:"+port;
+				hostLookup[vhost]=null;
+				addVhost("*", port, portApp);
+			})
+
+			// iterate over all hostLookup entries, and compare with all siteLookup entries.  
+			// And then make sure all siteLookup entries have a vhost
+
+			console.log()
+			_.each(hostLookup,(hostApp, host)=>{
+				console.log(c.magenta("VHOST:"), c.blue("Listening for"), c.white("[" + hostApp.site + "." + hostApp.mode + "]"), c.blue("on"), c.white("[" + host + "]"));				
+			})
+
+
+			_.each(siteLookup,(siteApp, site)=>{
+				var found=false;
+				_.each(hostLookup,(hostApp, host)=>{
+					if(siteApp===hostApp){
+						found=true;
+						return false;
+					}
+				})
+				if(!found){
+					var msg="No route to virtual host: "
+					console.log(c.magenta("\nWARNING:"), c.blue(msg), c.white(site) + "\n", c.blue("        To connect, add a unique hostname and/or port for this `hosts` entry in your configuration file."));
+				}
+			})
+
+			console.log();
+
+			// {site:, , app:, sling:, runMode:, config}
 
 		});
 	}
@@ -356,23 +456,55 @@ module.exports=function(options){
 
 
 		var servers=[];
-		var ports=[];
-		var log=global.bl.logger.get("blacklight-render.index");
+		var log=global.bl.logger.get("blacklight-render.startup");
 		var server;
 
 
-		_.each(blacklight.sites, (siteObject, site)=>{
-			if(siteObject.slingConnectors){
-				var app=siteObject.app;
-				_.each(siteObject.slingConnectors.ports, function(val,port){
-					if(!_.includes(ports, port)){
-						log.info("Launching [" + site + "." + val.runMode + "] listener on port [" + port + "]");
-						console.log("Launching [" + val.runMode + "] listener on port [" + port + "]");
-						servers.push(http.createServer(app).listen(port));
-						ports.push(port);
-					}
-				});
+		function resolveVhost(req, res, next){
+			var port = req.socket.localPort;
+			var host = req.headers.host;
+			if (trustForwardedHostHeader && req.headers["x-forwarded-host"]) {
+				host = req.headers["x-forwarded-host"];
 			}
+
+
+			if (host){
+				host = host.split(':')[0];
+			}else{
+				host="*";
+			}
+
+			host = host + ":" + port;
+
+			var server = hostLookup[host];
+			if (!server){
+				host = "*" + host.substr(host.indexOf("."));
+				server = hostLookup[host];
+				hostLookup[host]=server;   // Auto-include this vhost entry into the lookup table.  TODO: infinitely variable wildcards + maliciousness could overfill this table.
+			}
+			if (!server){
+				host = "*:" + port;
+				server = hostLookup[host];
+				hostLookup[host]=server;   // Auto-include this vhost entry into the lookup table.  TODO: infinitely variable wildcards + maliciousness could overfill this table.
+			} 
+			if(!server){
+				return next();
+			}else{
+				if (typeof server.app === "function"){
+					req.sling={sling: server.sling, mode: server.mode, site: server.site, config: config[server.site]};
+					return server.app(req, res, next);
+				}else{
+					var msg="Bad/unexpected server app found when looking up vhost: " + host ;
+					console.log(c.red("ERROR:"), c.white(msg + "\n"), server)
+					throw new Error(msg)
+				}
+			}
+		}
+
+
+		_.each(portLookup, (portApp, port)=>{
+			log.info("Listening on port [" + port + "]");
+			servers.push(http.createServer(resolveVhost).listen(port));
 		});
 		
 		return servers;
@@ -442,3 +574,6 @@ module.exports=function(options){
 	/**********************************************************************************/
 	return blacklight;
 }
+
+
+
