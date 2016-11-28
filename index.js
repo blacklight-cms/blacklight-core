@@ -23,6 +23,8 @@ module.exports=function(options){
 
 	var blacklight = global.bl = {};
 
+	blacklight.logger = options.logger || require("./lib/logger");
+
 	options=options||{};
 	options.appRoot = options.appRoot || process.env.BLACKLIGHT_ROOT;
 	if(!options.appRoot){throw new Error("options.appRoot must be set to the home directory of your blacklight installation.");}
@@ -37,9 +39,6 @@ module.exports=function(options){
 	process.env.NODE_CONFIG_DIR = options.appRoot + "/config";
 	var config = blacklight.config = require("config");
 
-	if(options.pluginLoader){
-		loadPlugins(options.pluginLoader);
-	}
 
 
 	/**********************************************************************************/
@@ -101,24 +100,30 @@ module.exports=function(options){
 
 		function configurePlugins(site){
 			var configHelper = blacklight.pluginConfigHelper(site);
-			pluginCategories.forEach((category)=>{
-				var pluginFactory=blacklight.plugins[category];
-				if(pluginFactory){
-					logPlugin.debug("Configuring plugin '" + category + "' for site '" + site + "'");
-					var configuredPlugin=pluginFactory(config, configHelper);
-					if(site){
-						blacklight[category].sites[site]=configuredPlugin;
-					}else{
-						blacklight[category]=configuredPlugin;
-						blacklight[category].sites = {};
+
+			var sitePlugins = _.get(blacklight.sites, [site, "helpers", "plugins"]);
+			if(sitePlugins){
+				pluginCategories.forEach((category)=>{
+					var pluginFactory=sitePlugins[category] || blacklight[category];
+					if(pluginFactory){
+						var configuredPlugin=pluginFactory(config, configHelper);
+						if(site===blacklight.defaultSite){
+							blacklight[category]=configuredPlugin;
+						}
+
+						logPlugin.debug("Configuring plugin '" + category + "' for site '" + site + "'");
+						_.set(blacklight,[category,"sites",site], configuredPlugin);
+
 					}
-				}
-			});
+				});
+			}
 		}
 
-		configurePlugins();
+		configurePlugins(defaultSite);
 		sites.forEach((site)=>{
-			configurePlugins(site);
+			if(site!==defaultSite){
+				configurePlugins(site);
+			}
 		});
 
 		var defaultAppsMount = normalizePath(_.get(config, defaultSite + ".appsMount"));
@@ -137,10 +142,10 @@ module.exports=function(options){
 
 			if(siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + siteConfig.slingBasePath.trim("/") + "/")}
 
-			var slings = _.get(config, site + ".hosts");
+			var slings = _.get(config, site + ".modes");
 			_.each(slings,(host,key)=>{
 				var sling=host.sling;
-				if(!sling.baseUri){throw new Error("Missing baseUri in sling configuration: " + site + ".hosts." + key + ".sling");}
+				if(!sling.baseUri){throw new Error("Missing baseUri in sling configuration: " + site + ".modes." + key + ".sling");}
 				sling.baseUri = sling.baseUri.replace(/\/$/,"");
 			})
 
@@ -162,7 +167,7 @@ module.exports=function(options){
 
 		/// Instantiate sling connectors for all sites
 		_.each(blacklight.sites, (siteObject, site)=>{
-			var slingConfigs = _.get(blacklight.config[site], "hosts"), defaultConfig;
+			var slingConfigs = _.get(blacklight.config[site], "modes"), defaultConfig;
 			if(slingConfigs){
 				var defaultConfigBuilder = _.get(siteObject, "helpers.slingConfig");
 				if(defaultConfigBuilder){defaultConfig=defaultConfigBuilder()}
@@ -197,9 +202,9 @@ module.exports=function(options){
 			var siteConfig = _.get(config, site);
 			var siteEnvironment = _.get(config, site + ".environment");
 			var siteHelpers = _.get(siteObject, "helpers", {});
-			var hosts = _.get(siteConfig, "hosts");
+			var modes = _.get(siteConfig, "modes");
 
-			if(!hosts){return;}
+			if(!modes){return;}
 
 			var app = express();
 			app.disable('x-powered-by');
@@ -363,14 +368,22 @@ module.exports=function(options){
 				if(hostLookup[vhost]){
 					console.log(c.red("\n\nERROR: "), c.yellow("Duplicate vhost entry for site:"), c.white(scId), 
 						c.yellow("\n\tPlease make sure you have a unique hostname and/or port specified in the BL configuration for:"), 
-						c.white("\n\t" + settings.site + ".hosts." + settings.mode + "\n\n") );
+						c.white("\n\t" + settings.site + ".modes." + settings.mode + "\n\n") );
 					throw new Error("Configuration problem: duplicate vhost entry '" + vhost + "' for [" + scId + "]")
 				}
 				hostLookup[vhost] = settings;
 			}
 
-			_.each(siteConfig.hosts, (host, mode)=>{
+			_.each(siteConfig.modes, (host, mode)=>{
 				var currentVhost = _.assign({mode:mode, sling: new SlingConnector(host.sling)}, baseSettings);
+				currentVhost.reqBl={sling: currentVhost.sling, mode: mode, site: site, config: siteConfig, plugins:{}};
+				_.each(pluginCategories, (pluginId)=>{
+					if(blacklight[pluginId]){
+						currentVhost.reqBl.plugins[pluginId]=_.get(blacklight,[pluginId, "sites", site], blacklight[pluginId]);
+					}
+				});
+
+
 				siteLookup[site + "." + mode] = currentVhost;
 				var port = host.port || siteConfig.port || DEFAULT_PORT;
 
@@ -438,7 +451,7 @@ module.exports=function(options){
 				})
 				if(!found){
 					var msg="No route to virtual host: "
-					console.log(c.magenta("\nWARNING:"), c.blue(msg), c.white(site) + "\n", c.blue("        To connect, add a unique hostname and/or port for this `hosts` entry in your configuration file."));
+					console.log(c.magenta("\nWARNING:"), c.blue(msg), c.white(site) + "\n", c.blue("        To connect, add a unique hostname and/or port for this `modes` entry in your configuration file."));
 				}
 			})
 
@@ -490,14 +503,8 @@ module.exports=function(options){
 			if(!server){
 				return next();
 			}else{
-				if (typeof server.app === "function"){
-					req.sling={sling: server.sling, mode: server.mode, site: server.site, config: config[server.site]};
-					return server.app(req, res, next);
-				}else{
-					var msg="Bad/unexpected server app found when looking up vhost: " + host ;
-					console.log(c.red("ERROR:"), c.white(msg + "\n"), server)
-					throw new Error(msg)
-				}
+				req.bl=server.reqBl;
+				return server.app(req, res, next);
 			}
 		}
 
@@ -527,30 +534,26 @@ module.exports=function(options){
 	}
 
 
-	/**********************************************************************************/
-	/**********************************************************************************/
-	function loadPlugins(loader){
-		var desiredPlugins=[];
-		try{require(desiredPlugins=require(_path.join(options.appRoot,"config/plugins.json")));}catch(err){}
-		desiredPlugins.forEach((pluginId)=>{
-			var plugin=loader(pluginId);
-			if(!plugin){return;}
-			if(pluginCategories.indexOf(plugin.category)<0){throw new Error("Plugin '" + pluginId + "' specifies invalid category '" + plugin.category + "'. Must be one of: " + pluginCategories.join(", "));}
-			if(!_.isFunction(plugin)){throw new Error("Plugin '" + pluginId + "' main module export must be a function, but is not.");}
-			plugin.name = pluginId;
-			blacklight.plugins[plugin.category] = plugin;
-		});
-	}
 
 	/**********************************************************************************/
 	/**********************************************************************************/
 	blacklight.pluginConfigHelper = function(site){
 		var computedSite = site || blacklight.defaultSite;
+		var slings;
 		var $={
 			site:site, 
 			config:config,
 			siteConfig:config[computedSite],
 			siteObject:blacklight.sites[computedSite],
+			getSlings: function(){
+				if(!slings){
+					slings={};
+					_.each(_.get(config,[computedSite,"modes"]), (host, mode)=>{
+						if(host.sling){  slings[mode]= new SlingConnector(host.sling); }
+					});
+				}
+				return slings;
+			},
 			getEnv: (property, defaults)=>{
 				defaults = defaults || {};
 				var propertyPath = "environment." + property;
