@@ -204,7 +204,7 @@ module.exports=function(options){
 
 
 			var blacklightProxy = _.get(blacklight.blacklightProxy, site);
-			if(blacklightProxy && siteConfig.environment.blacklightProxy){
+			if(siteEnvironment.blacklightProxy && blacklightProxy){
 				console.log("Launching site '" + site + "' via blacklight proxy to", siteConfig.environment.blacklightProxy);
 				app.all( siteConfig.appsMount + "*", blacklightProxy.appsProxy());
 				app.all( siteConfig.publicMount + "img-opt/*", blacklightProxy.appsProxy());
@@ -541,10 +541,10 @@ module.exports=function(options){
 				return slings;
 			},
 			getEnv: (property, defaults)=>{
-				defaults = defaults || {};
 				var propertyPath = "environment." + property;
 				var val=_.get(config[site], propertyPath, _.get(config, propertyPath));
 				if(typeof val === "object"){
+					defaults = defaults || {};
 					return _.assign(defaults, val);
 				}else{
 					return val || defaults;
