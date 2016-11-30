@@ -1,19 +1,20 @@
 {
-  "name": "blacklight-render",
-  "version": "1.0.0",
-  "description": "Render module for the Blacklight CMS",
+  "name": "blacklight-core",
+  "version": "0.5.4",
+  "description": "Blacklight CMS, core page rendering and service module",
   "main": "index.js",
   "scripts": {
     "test": "test"
   },
-  "author": "Aaron Harder <aaron@entropy.cc> (http://entropy.cc)",
-  "license": "Entropy Shared Source",
+  "author": "Entropy Multimedia, Inc. (http://entropy.cc)",
+  "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
     "chalk": "^1.1.3",
     "compression": "^1.6.2",
     "config": "^1.21.0",
     "es6-promise": "^2.0.1",
+    "express": "^4.11.2",
     "handlebars": "4.0.5",
     "html-escape": "^1.0.1",
     "html-minifier": "^2.1.3",
@@ -26,10 +27,8 @@
     "mkdirp": "^0.5.1",
     "request": "^2.78.0",
     "serve-favicon": "^2.2.0",
-    "sling-connector": "git+https://gitlab.entropy.cc/blacklight/npm-sling-connector.git#release/1.x",
+    "sling-connector": "^1.0.0",
     "watch": "^0.14.0"
   },
-  "devDependencies": {
-    "express": "^4.11.2"
-  }
+  "devDependencies": {}
 }

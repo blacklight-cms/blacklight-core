@@ -11,7 +11,7 @@ var c=require("./lib/colors");
 
 
 // TODO: USe node domains or other mechanism for better top-level exception handling.
-console.log("blacklight-render: index.js:  you should set up an exception-catching domain here?")
+// console.log("blacklight-core: index.js:  you should set up an exception-catching domain here?")
 
 module.exports=function(options){
 	
@@ -67,7 +67,20 @@ module.exports=function(options){
 		sites.forEach((site)=>{
 			var siteConfigPath = _path.join(siteRoot, site, "site/apps/config.json");
 			var siteModulePath = _path.join(siteRoot, site, "site/apps/site.js"), siteModule;
-			blacklight.sites[site]={};
+
+			try{
+				var siteConf=require(siteConfigPath);
+				blacklight.sites[site]={};
+				siteConf.environment = siteConf.environment || {};
+				siteConf.environment = config.util.extendDeep(siteConf.environment, config.environment);
+				siteConf.configPath = siteConfigPath;
+				config.util.setModuleDefaults(site, siteConf); 
+
+			}catch(err){
+				return;
+				// log.error("Problem loading configuration file for site '" + site + "' at:", siteConfigPath, err);
+				// process.exit(1);
+			}
 
 			try{
 				siteModule = require(siteModulePath);
@@ -77,23 +90,12 @@ module.exports=function(options){
 				throw err;
 			}
 
-			try{
-				var siteConf=require(siteConfigPath);
-				siteConf.environment = siteConf.environment || {};
-				siteConf.environment = config.util.extendDeep(siteConf.environment, config.environment);
-				siteConf.configPath = siteConfigPath;
-				config.util.setModuleDefaults(site, siteConf); 
-
-			}catch(err){
-				log.error("Problem loading configuration file for site '" + site + "' at:", siteConfigPath, err);
-				process.exit(1);
-			}
 		});
 
 		blacklight.appRoot = config.appRoot = options.appRoot;
-		config.environment = config[defaultSite].environment;
+		config.environment = config[defaultSite].environment || config.environment;
 
-		var logPlugin = global.bl.logger.get("blacklight-render");
+		var logPlugin = global.bl.logger.get("blacklight-core");
 
 		function configurePlugins(site){
 			var configHelper = blacklight.pluginConfigHelper(site);
@@ -108,7 +110,7 @@ module.exports=function(options){
 							blacklight[category]=configuredPlugin;
 						}
 
-						logPlugin.debug("Configuring plugin '" + category + "' for site '" + site + "'");
+						// logPlugin.debug("Configuring plugin '" + category + "' for site '" + site + "'");
 						_.set(blacklight,[category,"sites",site], configuredPlugin);
 
 					}
@@ -137,7 +139,7 @@ module.exports=function(options){
 			_.set(config, appProperty, normalizePath(_.get(config,appProperty)), defaultAppsMount);
 			_.set(config, pubProperty, normalizePath(_.get(config,pubProperty)), defaultPublicMount);
 
-			if(siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + siteConfig.slingBasePath.trim("/") + "/")}
+			if(siteConfig && siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + siteConfig.slingBasePath.trim("/") + "/")}
 
 			var slings = _.get(config, site + ".modes");
 			_.each(slings,(host,key)=>{
@@ -149,7 +151,6 @@ module.exports=function(options){
 		});
 
 		config.get("environment"); // Invoke a "get" call, just to make the config immutable.
-
 
 	}
 
@@ -274,30 +275,39 @@ module.exports=function(options){
 
 
 			var componentPaths = blacklight.buildComponentRoots(siteConfig.componentRoots);
+			var env = siteConfig.environment || {};
+			var devMode = env.devMode;
 
 			// Configure and inject Blacklight handler
 			app.use(
 		    blacklight.express({
 				publicRoot: _path.resolve(options.appRoot, "public") ,
 				componentPaths: componentPaths,  
-				componentCacheClearOnChange: config.environment.componentCacheClearOnChange,
-				componentCacheDisable: config.environment.componentCacheDisable,
+				componentCacheClearOnChange: firstDef(env.componentCacheClearOnChange, devMode),
+				componentCacheDisable: firstDef(env.componentCacheDisable, devMode),
 				utilities: blacklight.modules.modelHelpers,
 				language: siteConfig.language,
-				translationMethod: siteHelpers.staticTranslation ? siteHelpers.staticTranslation(siteConfig.language) : ()=>{"Translation not installed";},
-				postProcessOptions:{minifyHTML:!config.environment.devMode, beautifyHTML:true},
+				postProcessOptions:{minifyHTML: firstDef(env.minifyHTML, !devMode), beautifyHTML: firstDef(devMode, true)},
 
-				// TODO: config for emailError or not: the mechanism below needs replacement
-				emailError: (config.environment.devMode&&0)?function(opt){global.bl.logger.get("email.error").error("---------\nWould be sending email error: " + opt.subject + "\n" + opt.text)}:blacklight.emailError,
-				environmentName: config.environment.environmentName,
+				translationMethod: siteHelpers.staticTranslation ? siteHelpers.staticTranslation(siteConfig.language) : ()=>{"Static translation plugin not installed";},
+				emailError: blacklight.emailError ? blacklight.emailError : ()=>{},
+
+				environmentName: env.environmentName,
 				requestPreprocessors: requestPreprocessors,
-				skipModelProcessors: config.fshr.templateOnlyProxy?true:false
+				skipModelProcessors: env.blacklightProxy?true:false
 			}));
 
 			siteObject.app = app;
 		});
 
 
+		function firstDef(value, fallback){
+			if(typeof(value)==="undefined"){
+				return fallback;
+			}else{
+				return value;
+			}
+		}
 	
 	}
 
@@ -444,7 +454,7 @@ module.exports=function(options){
 
 
 		var servers=[];
-		var log=global.bl.logger.get("blacklight-render.startup");
+		var log=global.bl.logger.get("blacklight-core.startup");
 		var server;
 
 
