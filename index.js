@@ -459,44 +459,66 @@ module.exports=function(options){
 
 
 		var servers=[];
-		var log=global.bl.logger.get("blacklight-core.startup");
+		var log=global.bl.logger.get("blacklight-core.vhost-lookup");
 		var server;
+		var trustSlingSourceHeader = config.environment.trustSlingSourceHeader;
 
-
-		function resolveVhost(req, res, next){
+		function resolveVhost(req, res, thereIsNoNextWithoutExpress){
 			var port = req.socket.localPort;
 			var host = req.headers.host;
-			if (trustForwardedHostHeader && req.headers["x-forwarded-host"]) {
-				host = req.headers["x-forwarded-host"];
-			}
+			var server, usedSlingSource=false;
 
+			if(trustSlingSourceHeader && req.headers["x-sling-source"]){
+				var parts = req.headers["x-sling-source"].split("."), site, mode;
+				if(parts[1]){
+					site=parts[0];
+					mode=parts[1];
+				}else{
+					site=blacklight.defaultSite;
+					mode=parts[0];
+				}
+				var id=site + "." + mode;
+				server = siteLookup[id];
+				usedSlingSource = true;
 
-			if (host){
-				host = host.split(':')[0];
 			}else{
-				host="*";
+				if (trustForwardedHostHeader && req.headers["x-forwarded-host"]) {
+					host = req.headers["x-forwarded-host"];
+				}
+
+
+				if (host){
+					host = host.split(':')[0];
+				}else{
+					host="*";
+				}
+
+				host = host + ":" + port;
+
+				server = hostLookup[host];
+				if (!server){
+					host = "*" + host.substr(host.indexOf("."));
+					server = hostLookup[host];
+					hostLookup[host]=server;   // Auto-include this vhost entry into the lookup table.  TODO: infinitely variable wildcards + maliciousness could overfill this table.
+				}
+				if (!server){
+					// TODO: make sure we don't allow an existing explicit hostname for a given mode to be resolved on the wrong port.
+					host = "*:" + port;
+					server = hostLookup[host];
+					hostLookup[host]=server;   // Auto-include this vhost entry into the lookup table.  TODO: infinitely variable wildcards + maliciousness could overfill this table.
+				} 			
 			}
 
-			host = host + ":" + port;
-
-			var server = hostLookup[host];
-			if (!server){
-				host = "*" + host.substr(host.indexOf("."));
-				server = hostLookup[host];
-				hostLookup[host]=server;   // Auto-include this vhost entry into the lookup table.  TODO: infinitely variable wildcards + maliciousness could overfill this table.
-			}
-			if (!server){
-				// TODO: make sure we don't allow an existing explicit hostname for a given mode to be resolved on the wrong port.
-				host = "*:" + port;
-				server = hostLookup[host];
-				hostLookup[host]=server;   // Auto-include this vhost entry into the lookup table.  TODO: infinitely variable wildcards + maliciousness could overfill this table.
-			} 
 			if(!server){
-				return next();
+				log.error("Failed to find host via ", (usedSlingSource ? ("x-sling-source: " + req.headers["x-sling-source"]) : ("hostname: " + host)) );
+				res.writeHead(404, {"content-type":"text/html"})
+				res.write("Unknown host requested\n");
+				res.end();
 			}else{
 				req.bl=server.reqBl;
-				return server.app(req, res, next);
+				return server.app(req, res);
 			}
+
 		}
 
 
