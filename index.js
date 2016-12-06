@@ -203,14 +203,16 @@ module.exports=function(options){
 			app.disable('x-powered-by');
 
 
-			var blacklightProxy = _.get(blacklight.blacklightProxy, site);
+			var blacklightProxy = _.get(blacklight.blacklightProxy, ["sites",site]);
+
 			if(siteEnvironment.blacklightProxy && blacklightProxy){
 				console.log("Launching site '" + site + "' via blacklight proxy to", siteConfig.environment.blacklightProxy);
 				app.all( siteConfig.appsMount + "*", blacklightProxy.appsProxy());
 				app.all( siteConfig.publicMount + "img-opt/*", blacklightProxy.appsProxy());
+				// TODO: rooted routes are not currently added into bl-proxy.  how would you do that?
 
 				var slingBaseRegex = "^/content/" + site + "/";
-				if(siteConfig.slingBasePath){slingBaseRegex="^" + slingBaseRegex;}
+				if(siteConfig.slingBasePath){slingBaseRegex="^" + siteConfig.slingBasePath;}
 
 				requestPreprocessors = [
 					{path: slingBaseRegex, proxy: blacklightProxy.contentProxy}
