@@ -280,6 +280,9 @@ module.exports=function(options){
 			var env = siteConfig.environment || {};
 			var devMode = env.devMode;
 
+
+			var staticTranslation = _.get(blacklight,["staticTranslation","sites",site]);
+
 			// Configure and inject Blacklight handler
 			app.use(
 		    blacklight.express({
