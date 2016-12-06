@@ -20,7 +20,7 @@ module.exports=function(options){
 
 	var blacklight = global.bl = {};
 
-	blacklight.logger = options.logger || require("./lib/logger");
+	blacklight.logger = _.get(options, "logger", require("./lib/logger"));
 
 	options=options||{};
 	options.appRoot = options.appRoot || process.env.BLACKLIGHT_ROOT;
@@ -467,6 +467,10 @@ module.exports=function(options){
 			var port = req.socket.localPort;
 			var host = req.headers.host;
 			var server, usedSlingSource=false;
+
+			if(!port && req.socket.address){
+				port = req.socket.address().port;
+			}
 
 			if(trustSlingSourceHeader && req.headers["x-sling-source"]){
 				var parts = req.headers["x-sling-source"].split("."), site, mode;
