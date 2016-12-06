@@ -281,7 +281,7 @@ module.exports=function(options){
 			var devMode = env.devMode;
 
 
-			var staticTranslation = _.get(blacklight,["staticTranslation","sites",site]);
+			var staticTranslation = _.get(blacklight,["staticTranslation","sites",site], ()=>{return "ERROR: Translate plugin not installed";});
 
 			// Configure and inject Blacklight handler
 			app.use(
@@ -294,7 +294,7 @@ module.exports=function(options){
 				language: siteConfig.language,
 				postProcessOptions:{minifyHTML: firstDef(env.minifyHTML, !devMode), beautifyHTML: firstDef(devMode, true)},
 
-				translationMethod: siteHelpers.staticTranslation ? siteHelpers.staticTranslation(siteConfig.language) : ()=>{"Static translation plugin not installed";},
+				translationMethod: staticTranslation,
 				emailError: blacklight.emailError ? blacklight.emailError : ()=>{},
 
 				environmentName: env.environmentName,
