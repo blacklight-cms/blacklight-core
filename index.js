@@ -571,7 +571,7 @@ module.exports=function(options){
 				var propertyPath = "environment." + property;
 				var val=_.get(config[site], propertyPath, _.get(config, propertyPath));
 				if(typeof val === "object"){
-					defaults = defaults || {};
+					defaults = typeof defaults === "object" ? defaults : {};
 					return _.assign(defaults, val);
 				}else{
 					return val || defaults;
