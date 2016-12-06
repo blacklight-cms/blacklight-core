@@ -16,7 +16,7 @@ var c=require("./lib/colors");
 module.exports=function(options){
 	
 	var hostLookup={}, portLookup={}, siteLookup={};
-	var trustForwardedHostHeader;
+	var trustForwardedHostHeader, globalDefaultPort;
 
 	var blacklight = global.bl = {};
 
@@ -415,6 +415,10 @@ module.exports=function(options){
 					portLookup[port] = currentVhost;
 				}
 
+				if(isDefaultSite && mode === "publish"){
+					globalDefaultPort = port;
+				}
+
 			});
 
 
@@ -468,9 +472,6 @@ module.exports=function(options){
 			var host = req.headers.host;
 			var server, usedSlingSource=false;
 
-			if(!port && req.socket.address){
-				port = req.socket.address().port;
-			}
 
 			if(trustSlingSourceHeader && req.headers["x-sling-source"]){
 				var parts = req.headers["x-sling-source"].split("."), site, mode;
@@ -486,6 +487,10 @@ module.exports=function(options){
 				usedSlingSource = true;
 
 			}else{
+				if(!port && req.socket.address){
+					port = req.socket.address().port || globalDefaultPort;
+				}
+
 				if (trustForwardedHostHeader && req.headers["x-forwarded-host"]) {
 					host = req.headers["x-forwarded-host"];
 				}
