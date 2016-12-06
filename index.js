@@ -139,7 +139,7 @@ module.exports=function(options){
 			_.set(config, appProperty, normalizePath(_.get(config,appProperty)), defaultAppsMount);
 			_.set(config, pubProperty, normalizePath(_.get(config,pubProperty)), defaultPublicMount);
 
-			if(siteConfig && siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + siteConfig.slingBasePath.trim("/") + "/")}
+			if(siteConfig && siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + _.trim(siteConfig.slingBasePath,"/") + "/")}
 
 			var slings = _.get(config, site + ".modes");
 			_.each(slings,(host,key)=>{
