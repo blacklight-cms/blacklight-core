@@ -1,6 +1,6 @@
 {
   "name": "blacklight-core",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "Blacklight CMS, core page rendering and service module",
   "main": "index.js",
   "scripts": {
