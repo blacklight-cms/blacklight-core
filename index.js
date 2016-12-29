@@ -139,13 +139,24 @@ module.exports=function(options){
 			_.set(config, appProperty, normalizePath(_.get(config,appProperty)), defaultAppsMount);
 			_.set(config, pubProperty, normalizePath(_.get(config,pubProperty)), defaultPublicMount);
 
-			if(siteConfig && siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + _.trim(siteConfig.slingBasePath,"/") + "/")}
+			if(siteConfig && siteConfig.slingBasePath){siteConfig.slingBasePath = ("/" + _.trim(siteConfig.slingBasePath,"/") + "/");}
+
+
+			var blSlingConfig = _.get(blacklight.sites, ["blacklight","helpers","slingConfig"],()=>{return{};})(siteConfig);
+			var siteSlingConfig = _.get(blacklight.sites, [site,"helpers","slingConfig"],()=>{return{};})(siteConfig);
+
+			// combine blacklight config with site-specific config.  ??-> then in _.each() below, how do you merge those results into the main sling configs?
+			var helperSlingConfigs = _.defaults(blSlingConfig, siteSlingConfig);
+			if(blSlingConfig.preprocessors && siteSlingConfig.preprocessors){
+				helperSlingConfigs.preprocessors = blSlingConfig.preprocessors.concat(siteSlingConfig.preprocessors);
+			}
 
 			var slings = _.get(config, site + ".modes");
 			_.each(slings,(host,key)=>{
 				var sling=host.sling;
 				if(!sling.baseUri){throw new Error("Missing baseUri in sling configuration: " + site + ".modes." + key + ".sling");}
 				sling.baseUri = sling.baseUri.replace(/\/$/,"");
+				host.sling = _.defaults(host.sling, helperSlingConfigs)
 			})
 
 		});
@@ -163,14 +174,17 @@ module.exports=function(options){
 	blacklight.loadModules = function(){
 		initializeTo("loadModules");
 
-		/// Instantiate sling connectors for all sites
-		_.each(blacklight.sites, (siteObject, site)=>{
-			var slingConfigs = _.get(blacklight.config[site], "modes"), defaultConfig;
-			if(slingConfigs){
-				var defaultConfigBuilder = _.get(siteObject, "helpers.slingConfig");
-				if(defaultConfigBuilder){defaultConfig=defaultConfigBuilder()}
-			}
-		});
+		// /// Instantiate sling connectors for all sites
+		// _.each(blacklight.sites, (siteObject, site)=>{
+		// 	var slingConfigs = _.get(blacklight.config[site], "modes"), defaultConfig;
+		// 	if(slingConfigs){
+		// 		var defaultConfigBuilder = _.get(siteObject, "helpers.slingConfig");
+		// 		if(defaultConfigBuilder){
+		// 			defaultConfig=defaultConfigBuilder()
+
+		// 		}
+		// 	}
+		// });
 
 		blacklight.modules = blacklight.moduleLoader({siteConnections: blacklight.sites, defaultSite: blacklight.defaultSite});
 
@@ -240,10 +254,13 @@ module.exports=function(options){
 					bodyParser.urlencoded({extended: true}),   
 					blacklight.modules.router);
 
+
+				// var requestPreprocessors = _.get(blacklight, "sites.blacklight.helpers.preprocessors", ()=>{return []})();
+
+
 				if(siteHelpers.preprocessors){
-					requestPreprocessors = siteHelpers.preprocessors({modules: blacklight.modules})
+					requestPreprocessors = requestPreprocessors.concat(siteHelpers.preprocessors({modules: blacklight.modules}));
 				}
-				
 
 			}
 
@@ -570,6 +587,7 @@ module.exports=function(options){
 			getSlings: function(){
 				if(!slings){
 					slings={};
+					/// TODO: don't regenerate sling object.  instead pull from siteLookup[site + "." + host];
 					_.each(_.get(config,[computedSite,"modes"]), (host, mode)=>{
 						if(host.sling){  slings[mode]= new SlingConnector(host.sling); }
 					});
