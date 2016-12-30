@@ -283,6 +283,14 @@ module.exports=function(options){
 			);
 			
 
+			var wellKnownStaticHandler = express.static(options.appRoot + "/public/" + site + "/site/.well-known/", {etag: false});
+			app.use("/.well-known/", 
+				wellKnownStaticHandler,  
+				function(req,res,next){
+					res.status(404).send("404 error: Static asset not found");
+				}
+			);
+
 
 			// Add 404 status if accessing a path that contains "/404" in it
 			app.use(
