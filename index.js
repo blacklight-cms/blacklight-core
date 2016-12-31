@@ -314,7 +314,7 @@ module.exports=function(options){
 				publicRoot: _path.resolve(options.appRoot, "public") ,
 				componentPaths: componentPaths,  
 				componentCacheClearOnChange: firstDef(env.componentCacheClearOnChange, devMode),
-				componentCacheDisable: firstDef(env.componentCacheDisable, devMode),
+				componentCacheDisable: env.componentCacheDisable,
 				utilities: blacklight.modules.modelHelpers,
 				language: siteConfig.language,
 				postProcessOptions:{minifyHTML: firstDef(env.minifyHTML, !devMode), beautifyHTML: firstDef(devMode, true)},
