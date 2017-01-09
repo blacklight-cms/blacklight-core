@@ -145,7 +145,7 @@ module.exports=function(options){
 			var blSlingConfig = _.get(blacklight.sites, ["blacklight","helpers","slingConfig"],()=>{return{};})(siteConfig);
 			var siteSlingConfig = _.get(blacklight.sites, [site,"helpers","slingConfig"],()=>{return{};})(siteConfig);
 
-			// combine blacklight config with site-specific config.  ??-> then in _.each() below, how do you merge those results into the main sling configs?
+			// combine "blacklight.site" slingConfig with each site-specific slingConfig.  
 			var helperSlingConfigs = _.defaults(blSlingConfig, siteSlingConfig);
 			if(blSlingConfig.preprocessors && siteSlingConfig.preprocessors){
 				helperSlingConfigs.preprocessors = blSlingConfig.preprocessors.concat(siteSlingConfig.preprocessors);
@@ -156,7 +156,7 @@ module.exports=function(options){
 				var sling=host.sling;
 				if(!sling.baseUri){throw new Error("Missing baseUri in sling configuration: " + site + ".modes." + key + ".sling");}
 				sling.baseUri = sling.baseUri.replace(/\/$/,"");
-				host.sling = _.defaults(host.sling, helperSlingConfigs)
+				host.sling = _.defaults(host.sling, helperSlingConfigs)  // take result of merging bl.site's, and the current site's, configs (from the site.js "helper" configs) and merge that result into config.json's sling config values
 			})
 
 		});
@@ -217,9 +217,9 @@ module.exports=function(options){
 			app.disable('x-powered-by');
 
 
-			var blacklightProxy = _.get(blacklight.blacklightProxy, ["sites",site]);
+			var blacklightProxy = siteEnvironment.blacklightProxy;
 
-			if(siteEnvironment.blacklightProxy && blacklightProxy){
+			if(blacklightProxy && !blacklightProxy.disabled){
 				console.log("Launching site '" + site + "' via blacklight proxy to", siteConfig.environment.blacklightProxy);
 				app.all( siteConfig.appsMount + "*", blacklightProxy.appsProxy());
 				app.all( siteConfig.publicMount + "img-opt/*", blacklightProxy.appsProxy());
