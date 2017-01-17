@@ -296,14 +296,6 @@ module.exports=function(options){
 			);
 
 
-			// Add 404 status if accessing a path that contains "/404" in it
-			app.use(
-				function(req,res,next){
-					if(~req.path.indexOf("/404")){res.status(404);}
-					next();
-				}
-			);
-
 
 			var componentPaths = blacklight.buildComponentRoots(siteConfig.componentRoots);
 			var env = siteConfig.environment || {};
