@@ -59,7 +59,11 @@ module.exports=function(options){
 
 
 		if(!defaultSite){
-			log.error("You must set 'environment.defaultSite' in your local configuration file:", _path.join(siteRoot,"../config/local.json"))
+			if(sites.length){
+				log.error("You must set 'environment.defaultSite' in your local configuration file:\n", _path.join(siteRoot,"../config/local.json"))
+			}else{
+				log.error("You do not appear to have any sites installed in Blacklight.\nUse `bl site install` or `bl site create` to correct this issue.")
+			}
 			process.exit(1);
 		}
 
