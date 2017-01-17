@@ -1,6 +1,6 @@
 {
   "name": "blacklight-core",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "description": "Blacklight CMS, core page rendering and service module",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
-    "chalk": "^1.1.3",    
+    "chalk": "^1.1.3",
     "compression": "^1.6.2",
     "config": "^1.21.0",
     "es6-promise": "^2.0.1",
