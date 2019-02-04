@@ -4,7 +4,8 @@
   "description": "Blacklight CMS, core page rendering and service module",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "build:docs": "./node_modules/.bin/jsdoc -c ./docs/jsdoc.json"
   },
   "author": "Entropy Multimedia, Inc. (http://entropy.cc)",
   "license": "ISC",
@@ -31,6 +32,7 @@
     "watch": "^0.14.0"
   },
   "devDependencies": {
-    "chokidar": "^1.6.1"
+    "chokidar": "^1.6.1",
+    "jsdoc": "~3.5.5"
   }
 }
