@@ -1,2 +1,2 @@
 #/bin/sh
-jsdoc -c jsdoc.json
+npm run build:docs
